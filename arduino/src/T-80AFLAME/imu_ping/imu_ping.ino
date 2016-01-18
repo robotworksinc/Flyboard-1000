@@ -1,15 +1,17 @@
 /*
         Microstrain IMU library for Arduino
         ===================================
-    This routine interacts with microstrain IMU. 
+    This routine interacts with microstrain IMU and send/get IMU data. 
+    Following function are implemented (the one's used for UAV):
     
-    a) ping
+    a) ping    
 */
 
-
 // 100 ms wait for serial signal
-#define MAX_MILLIS_TO_WAIT 100
+#define MAX_MILLIS_TO_WAIT 20
 
+// Global variables
+long starttime;
 
 // Ping the IMU to check if it is "alive"
 byte ping() {
@@ -22,7 +24,7 @@ byte ping() {
 
     starttime = millis();                   // start the clock
 
-    // Wait till all 10 bytes are recieved or 100 ms has gone by
+    // Wait till all 10 bytes are recieved or 20 ms has gone by
     while ((Serial.available() < 10) && ((millis() - starttime) < MAX_MILLIS_TO_WAIT)) {
     }
 
@@ -44,14 +46,16 @@ byte ping() {
 void setup() {
     // Start Serial transmission from/to IMU
     Serial.begin(115200);
-    
-    // Delay of 10 ms
-    delay(10);
+            
+    // Delay of 5 ms
+    delay(5);
 }
 
 
 // Loop through following code
 void loop() {
+    Serial.flush();
+    
     // Check if IMU is "alive"
     if (ping() == '\x00') {
         Serial.println("IMU: ping successful!");

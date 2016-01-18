@@ -7,8 +7,8 @@
 
 // Define RC channels pin numbers
 #define RC_THROTTLE      2
-#define RC_PITCH         4
-#define RC_ROLL          7
+#define RC_PITCH         7
+#define RC_ROLL          4
 #define RC_YAW           8
 #define RC_IN_PIN_5     12
 #define RC_IN_PIN_6     13 
@@ -27,6 +27,7 @@ Servo ESC4;
 
 // Radio min/max for each stick
 #define RC_MIN       1050
+#define RC_MID       1500
 #define RC_MAX       1800
 #define ESC_MIN      1400
 #define ESC_MAX      1750
@@ -38,50 +39,32 @@ Servo ESC4;
 #define PITCH_FLAG      4
 #define ROLL_FLAG       8
 
-// holds the update flags defined above
-volatile uint8_t bUpdateFlagsShared;
-
-// shared variables are updated by the ISR and read by loop.
-// In loop we immediatley take local copies so that the ISR can keep ownership of the
-// shared ones. To access these in loop
-// we first turn interrupts off with noInterrupts
-// we take a copy to use in loop and the turn interrupts back on
-// as quickly as possible, this ensures that we are always able to receive new signals
-volatile uint16_t unThrottleInShared;
-volatile uint16_t unYawInShared;
-volatile uint16_t unPitchInShared;
-volatile uint16_t unRollInShared;
-
-// These are used to record the rising edge of a pulse in the calcInput functions
-// They do not need to be volatile as they are only used in the ISR. If we wanted
-// to refer to these in loop and the ISR then they would need to be declared volatile
-uint32_t ulThrottleStart;
-uint32_t ulYawStart;
-uint32_t ulPitchStart;
-uint32_t ulRollStart;
-
-// Intermediate variables to hold values
-double rcthr, rcyaw, rcpit, rcroll;
-double yaw, pitch, roll;
-double gyro_pitch, gyro_roll, gyro_yaw;
-double pitch_stab_output, roll_stab_output, yaw_stab_output;
-double pitch_output, roll_output, yaw_output;
-
 // 100 ms wait for serial signal
 #define MAX_MILLIS_TO_WAIT 100
 
 // Define value of pi
 #define PI 3.141592653589793
 
-// RC channels
+
+// Define global variables
 int channels[4];
 
-
-// Global variables
 unsigned long starttime;
 float euler[] = {0.0, 0.0, 0.0};
 float gyro[] = {0.0, 0.0, 0.0};
 float accl[] = {0.0, 0.0, 0.0};
+
+
+volatile uint8_t bUpdateFlagsShared;
+volatile uint16_t unThrottleInShared, unYawInShared, unPitchInShared, unRollInShared;
+
+uint32_t ulThrottleStart, ulYawStart, ulPitchStart, ulRollStart;
+
+double rcthr, rcyaw, rcpit, rcroll;
+double yaw, pitch, roll;
+double gyro_pitch, gyro_roll, gyro_yaw;
+double pitch_stab_output, roll_stab_output, yaw_stab_output;
+double pitch_output, roll_output, yaw_output;
 
 
 //Define the Kp, Ki and Kd Tuning Parameters
@@ -89,9 +72,9 @@ double pitch_stab_param[] = {2.0, 0.0, 0.0};
 double roll_stab_param[] = {2.0, 0.0, 0.0};
 double yaw_stab_param[] = {4.0, 0.0, 0.0};
 
-double pitch_rate_param[] = {0.2, 0.0, 0.0};
-double roll_rate_param[] = {0.2, 0.0, 0.0};
-double yaw_rate_param[] = {1.0, 0.0, 0.0};
+double pitch_rate_param[] = {0.2, 0.1, 0.0};
+double roll_rate_param[] = {0.2, 0.1, 0.0};
+double yaw_rate_param[] = {1.0, 0.1, 0.0};
 
 
 //Specify the links and initial tuning parameters
@@ -104,6 +87,7 @@ PID roll_rate_PID(&roll_stab_output, &roll_output, &gyro_roll, roll_rate_param[0
 PID yaw_rate_PID(&yaw_stab_output, &yaw_output, &gyro_yaw, yaw_rate_param[0], yaw_rate_param[1], yaw_rate_param[2], DIRECT);
 
 
+// ===== IMU Functions =========================================================
 // Function to convert angles in radians to degree
 float rad2deg(float angle) {
     return (180/PI) * angle;
@@ -238,6 +222,8 @@ byte get_uav(float* euler, float* accl, float* gyro) {
 }
 
 
+
+// ===== RC Interrupt functions =================================================
 // simple interrupt service routine
 void calcThrottle()
 {
@@ -344,41 +330,48 @@ void read(int channels[]) {
   else {
     channels[0] = RC_MIN;
   }
- 
-  if(bUpdateFlags & YAW_FLAG)
-  {
-    channels[1] = unYawIn;
-  } 
-  else {
-    channels[1] = RC_MIN;
-  }
 
   if(bUpdateFlags & PITCH_FLAG)
   {
-    channels[2] = unPitchIn;
+    channels[1] = unPitchIn;
   } 
   else {
-    channels[2] = RC_MIN;
+    channels[1] = RC_MID;
   }
   
 
   if(bUpdateFlags & ROLL_FLAG)
   {
-    channels[3] = unRollIn;
+    channels[2] = unRollIn;
   }
   else {
-    channels[3] = RC_MIN;
+    channels[2] = RC_MID;
   }
-              
+ 
+  if(bUpdateFlags & YAW_FLAG)
+  {
+    channels[3] = unYawIn;
+  } 
+  else {
+    channels[3] = RC_MID;
+  }
+
   bUpdateFlags = 0;
-  
 }
 
 
 void setup()
 {
   Serial.begin(115200);
- 
+
+  // Check if IMU is "alive"
+  if (ping() == '\x00') {
+    Serial.println("IMU: ping successful!");
+  }
+  else {
+    Serial.println("IMU: ping unsuccessful");
+  }
+
   ESC1.attach(MOTOR_FL);
   ESC2.attach(MOTOR_FR);
   ESC3.attach(MOTOR_BL);
@@ -389,21 +382,26 @@ void setup()
   PCintPort::attachInterrupt(RC_PITCH,calcPitch,CHANGE);
   PCintPort::attachInterrupt(RC_ROLL,calcRoll,CHANGE);
   
-  pitch_stab_PID.SetMode(AUTOMATIC);
-  roll_stab_PID.SetMode(AUTOMATIC);
+  rcthr = RC_MIN;
+  rcpit = RC_MID;
+  rcroll = RC_MID;
+  rcyaw = RC_MID;
+
+  pitch = -0.95;
+  roll = -9.0;
+  yaw = 4.0;
+  
+  gyro_roll = 0.0;
+  gyro_pitch = 0.0;
+  gyro_yaw = 0.0; 
+
+  //pitch_stab_PID.SetMode(AUTOMATIC);
+  //roll_stab_PID.SetMode(AUTOMATIC);
   yaw_stab_PID.SetMode(AUTOMATIC);
   
-  pitch_rate_PID.SetMode(AUTOMATIC);
-  roll_rate_PID.SetMode(AUTOMATIC);
+  //pitch_rate_PID.SetMode(AUTOMATIC);
+  //roll_rate_PID.SetMode(AUTOMATIC);
   yaw_rate_PID.SetMode(AUTOMATIC);
-  
-  // Check if IMU is "alive"
-  if (ping() == '\x00') {
-    Serial.println("IMU: ping successful!");
-  }
-  else {
-    Serial.println("IMU: ping unsuccessful");
-  }
   
   // Delay of 10 ms
   delay(10);
@@ -411,16 +409,30 @@ void setup()
 
 void loop()
 {
+  // Flush the serial register
+  Serial.flush();
+ 
   // Get values from 4 RC channels (Throttle, Yaw, Pitch and Roll)
   read(channels);
+
+  Serial.println("Throttle channel:");
+  Serial.println(channels[0]);
   
+  Serial.println("Yaw channel:");
+  Serial.println(channels[3]);
+
   // Constrain RC channel values - yaw is contrained between +/-150 degrees
   // Pitch and roll and contrained between +/- 15 degrees
   rcthr = map(channels[0], RC_MIN, RC_MAX, ESC_MIN, ESC_MAX);
-  rcyaw = map(channels[1], RC_MIN, RC_MAX, -150, 150);
-  rcpit = map(channels[2], RC_MIN, RC_MAX, -15, 15);
-  rcroll = map(channels[3], RC_MIN, RC_MAX, -15, 15);
-   
+  //rcpit = map(channels[1], RC_MIN, RC_MAX, -15, 15);
+  //rcroll = map(channels[2], RC_MIN, RC_MAX, -15, 15);
+  rcyaw = map(channels[3], RC_MIN, RC_MAX, -150, 150);
+  
+  Serial.println("RC Throttle: ");
+  Serial.println(rcthr);
+  Serial.println("RC Yaw (degree):");
+  Serial.println(rcyaw);
+ 
   // Get Euler angles and Gyro values
   if (get_uav(euler, accl, gyro) == '\x00') {
       roll = rad2deg(euler[0]);
@@ -432,20 +444,26 @@ void loop()
       gyro_yaw = rad2deg(gyro[2]);
   }
   else {
-      roll = 0.0;
-      pitch = 0.0;
-      yaw = 0.0;
+      pitch = -0.95;
+      roll = -9.0;
+      yaw = 4.0;
       
-      gyro_roll = 2.0;
-      gyro_pitch = 2.0;
-      gyro_yaw = 10.0;          	
+      gyro_roll = 0.0;
+      gyro_pitch = 0.0;
+      gyro_yaw = 0.0;          	
   }
   
+  Serial.println("IMU yaw (degree):");
+  Serial.println(yaw);
+
   // Stablizing PID
   pitch_stab_PID.Compute(); 
   roll_stab_PID.Compute();
   yaw_stab_PID.Compute();
   
+  Serial.println("Stab PID yaw output:");
+  Serial.println(yaw_stab_output);;
+
   pitch_stab_output = constrain(pitch_stab_output, -50, 50);
   roll_stab_output = constrain(roll_stab_output, -50, 50);
   yaw_stab_output = constrain(yaw_stab_output, -100, 100);
@@ -458,11 +476,18 @@ void loop()
   pitch_output = constrain(pitch_output, -175, 175);
   roll_output = constrain(roll_output, -175, 175);
   yaw_output = constrain(yaw_output, -175, 175);
-  
+ 
+  Serial.println("Rate PID yaw output: ");
+  Serial.println(yaw_output); 
+
   // Move the motors
-  ESC1.writeMicroseconds(rcthr + roll_output + pitch_output - yaw_output);
-  ESC2.writeMicroseconds(rcthr - roll_output + pitch_output + yaw_output);	
-  ESC3.writeMicroseconds(rcthr + roll_output - pitch_output + yaw_output);
-  ESC4.writeMicroseconds(rcthr - roll_output - pitch_output - yaw_output);
-    
+  //ESC1.writeMicroseconds(rcthr + roll_output + pitch_output - yaw_output);
+  //ESC2.writeMicroseconds(rcthr - roll_output + pitch_output + yaw_output);	
+  //ESC3.writeMicroseconds(rcthr + roll_output - pitch_output + yaw_output);
+  //ESC4.writeMicroseconds(rcthr - roll_output - pitch_output - yaw_output);
+
+  ESC1.writeMicroseconds(rcthr - yaw_output);
+  ESC2.writeMicroseconds(rcthr + yaw_output);	
+  ESC3.writeMicroseconds(rcthr + yaw_output);
+  ESC4.writeMicroseconds(rcthr - yaw_output);
 }

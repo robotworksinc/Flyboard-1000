@@ -1,6 +1,6 @@
-#include <PinChangeInt.h>
+//#include <PinChangeInt.h>
 
-#include <Servo.h>
+//#include <Servo.h>
 
 // Define RC channels pin numbers
 #define RC_THROTTLE      2
@@ -17,10 +17,10 @@
 #define MOTOR_BR        11
 
 // Define ESC servo objects
-Servo ESC1;
-Servo ESC2;
-Servo ESC3;
-Servo ESC4;
+//Servo ESC1;
+//Servo ESC2;
+//Servo ESC3;
+//Servo ESC4;
 
 // Radio min/max for each stick
 #define RC_MIN       1050
@@ -310,46 +310,46 @@ void run()
   if(bUpdateFlags & THROTTLE_FLAG)
   {
     rcthr = map(unThrottleIn, RC_MIN, RC_MAX, ESC_MIN, ESC_MAX);
-    ESC1.writeMicroseconds(rcthr);
-    ESC2.writeMicroseconds(rcthr);
-    ESC3.writeMicroseconds(rcthr);
-    ESC4.writeMicroseconds(rcthr);
+    //ESC1.writeMicroseconds(rcthr);
+    //ESC2.writeMicroseconds(rcthr);
+    //ESC3.writeMicroseconds(rcthr);
+    //ESC4.writeMicroseconds(rcthr);
   }
  
   if(bUpdateFlags & YAW_FLAG)
   {
     rcthr = map(unThrottleIn, RC_MIN, RC_MAX, ESC_MIN, ESC_MAX);
-    rcyaw = map(unYawIn, RC_MIN, RC_MAX, -200, 200)    
+    rcyaw = map(unYawIn, RC_MIN, RC_MAX, -200, 200);   
     fast = constrain(rcthr + rcyaw, ESC_MIN, ESC_MAX);
     slow = constrain(rcthr - rcyaw, ESC_MIN, ESC_MAX);
-    ESC1.writeMicroseconds(fast);
-    ESC4.writeMicroseconds(fast);
-    ESC2.writeMicroseconds(slow);
-    ESC3.writeMicroseconds(slow);
+    //ESC1.writeMicroseconds(fast);
+    //ESC4.writeMicroseconds(fast);
+    //ESC2.writeMicroseconds(slow);
+    //ESC3.writeMicroseconds(slow);
   } 
 
   if(bUpdateFlags & PITCH_FLAG)
   {
     rcthr = map(unThrottleIn, RC_MIN, RC_MAX, ESC_MIN, ESC_MAX);
-    rcpit = map(unPitchIn, RC_MIN, RC_MAX, -170, 170)    
+    rcpit = map(unPitchIn, RC_MIN, RC_MAX, -170, 170);   
     fast = constrain(rcthr + rcpit, ESC_MIN, ESC_MAX);
     slow = constrain(rcthr - rcpit, ESC_MIN, ESC_MAX);
-    ESC1.writeMicroseconds(fast);
-    ESC2.writeMicroseconds(fast);
-    ESC3.writeMicroseconds(slow);
-    ESC4.writeMicroseconds(slow);
+    //ESC1.writeMicroseconds(fast);
+    //ESC2.writeMicroseconds(fast);
+    //ESC3.writeMicroseconds(slow);
+    //ESC4.writeMicroseconds(slow);
   } 
 
   if(bUpdateFlags & ROLL_FLAG)
   {
     rcthr = map(unThrottleIn, RC_MIN, RC_MAX, ESC_MIN, ESC_MAX);
-    rcroll = map(unRollIn, RC_MIN, RC_MAX, -170, 170)    
+    rcroll = map(unRollIn, RC_MIN, RC_MAX, -170, 170);    
     fast = constrain(rcthr + rcroll, ESC_MIN, ESC_MAX);
     slow = constrain(rcthr - rcroll, ESC_MIN, ESC_MAX);
-    ESC1.writeMicroseconds(fast);
-    ESC3.writeMicroseconds(fast);
-    ESC2.writeMicroseconds(slow);
-    ESC4.writeMicroseconds(slow);
+    //ESC1.writeMicroseconds(fast);
+    //ESC3.writeMicroseconds(fast);
+    //ESC2.writeMicroseconds(slow);
+    //ESC4.writeMicroseconds(slow);
   }
               
   bUpdateFlags = 0;
@@ -359,15 +359,15 @@ void setup()
 {
   Serial.begin(115200);
  
-  ESC1.attach(MOTOR_FL);
-  ESC2.attach(MOTOR_FR);
-  ESC3.attach(MOTOR_BL);
-  ESC4.attach(MOTOR_BR);
+  //ESC1.attach(MOTOR_FL);
+  //ESC2.attach(MOTOR_FR);
+  //ESC3.attach(MOTOR_BL);
+  //ESC4.attach(MOTOR_BR);
 
-  PCintPort::attachInterrupt(RC_THROTTLE,calcThrottle,CHANGE);
-  PCintPort::attachInterrupt(RC_YAW,calcYaw,CHANGE);
-  PCintPort::attachInterrupt(RC_PITCH,calcPitch,CHANGE);
-  PCintPort::attachInterrupt(RC_ROLL,calcRoll,CHANGE);
+  //PCintPort::attachInterrupt(RC_THROTTLE,calcThrottle,CHANGE);
+  //PCintPort::attachInterrupt(RC_YAW,calcYaw,CHANGE);
+  //PCintPort::attachInterrupt(RC_PITCH,calcPitch,CHANGE);
+  //PCintPort::attachInterrupt(RC_ROLL,calcRoll,CHANGE);
   
   // Delay of 10 ms
   delay(10);
@@ -376,7 +376,7 @@ void setup()
 void loop()
 {
   // Operate motors using RC
-  run()
+  //run();
   
   // Check if IMU is "alive"
   if (ping() == '\x00') {
@@ -384,20 +384,21 @@ void loop()
   }
   else {
     Serial.println("IMU: ping unsuccessful");
-    
-  // Get Euler angles, acceleration and gyro values
-  if (get_uav(euler, accl, gyro) == '\x00') {
-	Serial.println("IMU: IMU values are successful!");
-        Serial.println(rad2deg(euler[0]));
-    	Serial.println(rad2deg(euler[1]));
-    	Serial.println(rad2deg(euler[2]));
-	Serial.println(rad2deg(gyro[0]));
-    	Serial.println(rad2deg(gyro[1]));
-    	Serial.println(rad2deg(gyro[2]));
-    }
-    else {
-	Serial.println("IMU: IMU values are unsuccessful!");
-    }	
-  
   }
+  
+  delay(5);
+
+  // Get Euler angles, acceleration and gyro values
+  //if (get_uav(euler, accl, gyro) == '\x00') {
+	//Serial.println("IMU: IMU values are successful!");
+        //Serial.println(rad2deg(euler[0]));
+    	//Serial.println(rad2deg(euler[1]));
+    	//Serial.println(rad2deg(euler[2]));
+	//Serial.println(rad2deg(gyro[0]));
+    	//Serial.println(rad2deg(gyro[1]));
+    	//Serial.println(rad2deg(gyro[2]));
+    //}
+    //else {
+	//Serial.println("IMU: IMU values are unsuccessful!");
+    //}	
 }

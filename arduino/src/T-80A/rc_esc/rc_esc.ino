@@ -4,8 +4,8 @@
 
 // Define RC channels pin numbers
 #define RC_THROTTLE      2
-#define RC_PITCH         4
-#define RC_ROLL          7
+#define RC_PITCH         7
+#define RC_ROLL          4
 #define RC_YAW           8
 #define RC_IN_PIN_5     12
 #define RC_IN_PIN_6     13 
