@@ -33,8 +33,8 @@ Servo ESC4;
 #define RC_MIN       1100
 #define RC_MID       1500
 #define RC_MAX       1900
-#define ESC_MIN      1400
-#define ESC_MAX      1750
+#define ESC_MIN      1450
+#define ESC_MAX      1830
 
 // Various global variables
 int channels[4];
