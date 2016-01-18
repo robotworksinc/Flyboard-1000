@@ -24,10 +24,10 @@ Servo ESC3;
 Servo ESC4;
 
 // Define drone motor pin numbers
-#define MOTOR_FL         9
-#define MOTOR_FR        10
-#define MOTOR_BL         6
-#define MOTOR_BR        11
+#define MOTOR_FL        11
+#define MOTOR_FR         6
+#define MOTOR_BL        10
+#define MOTOR_BR         9
 
 // RC Radio min/max for each stick
 #define RC_MIN       1100
