@@ -24,24 +24,25 @@ Servo ESC3;
 Servo ESC4;
 
 // Define drone motor pin numbers
-#define MOTOR_FL         9
-#define MOTOR_FR        10
-#define MOTOR_BL         6
-#define MOTOR_BR        11
+#define MOTOR_FL        11
+#define MOTOR_FR         6
+#define MOTOR_BL        10
+#define MOTOR_BR         9
+
 
 // RC Radio min/max for each stick
-#define RC_MIN       1050
+#define RC_MIN       1100
 #define RC_MID       1500
-#define RC_MAX       1800
-#define ESC_MIN      1400
-#define ESC_MAX      1750
+#define RC_MAX       1900
+#define ESC_MIN      1450
+#define ESC_MAX      1830
 
 // Various global variables
 int channels[4];
 volatile uint8_t bUpdateFlagsShared;
 volatile uint16_t unThrottleInShared, unYawInShared, unPitchInShared, unRollInShared;
 uint32_t ulThrottleStart, ulYawStart, ulPitchStart, ulRollStart;
-uint16_t rcthr, rcyaw, rcpit, rcroll, pwm1, pwm2, pwm3, pwm4;
+long rcthr, rcyaw, rcpit, rcroll, pwm1, pwm2, pwm3, pwm4;
 
 // simple interrupt service routine
 void calcThrottle()
