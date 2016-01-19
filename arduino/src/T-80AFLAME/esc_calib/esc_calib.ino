@@ -189,9 +189,9 @@ void loop()
 
   // map(channels[0], RC_MIN, RC_MAX, ESC_MIN, ESC_MAX)
   rcthr = channels[0];
-  rcroll = map(channels[1], RC_MIN, RC_MAX, -60, 60);
-  rcpit = map(channels[2], RC_MIN, RC_MAX, -60, 60);
-  rcyaw = map(channels[3], RC_MIN, RC_MAX, -300, 300);
+  rcroll = map(channels[1], RC_MIN, RC_MAX, -150, 150);
+  rcpit = map(channels[2], RC_MIN, RC_MAX, -150, 150);
+  rcyaw = map(channels[3], RC_MIN, RC_MAX, -500, 500);
   
   Serial.println("RC constrained values:");
   Serial.println(rcthr);
