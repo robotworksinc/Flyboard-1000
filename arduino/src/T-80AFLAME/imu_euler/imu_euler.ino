@@ -54,6 +54,7 @@ byte get_euler_angles(float* euler) {
     else {
        for (int n = 0; n < 30; n++) {
            reply[n] = Serial.read();
+           delay(1); 
        }
 
        // Roll angle
@@ -99,8 +100,6 @@ void loop() {
     Serial.flush();
     
     if (get_euler_angles(euler) == '\x00') {
-        Serial.println("IMU: Euler angle successful!");
-        Serial.println("Roll, Pitch and Yaw:");
         Serial.println(rad2deg(euler[0]));
         Serial.println(rad2deg(euler[1]));
         Serial.println(rad2deg(euler[2])); 

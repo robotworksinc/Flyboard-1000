@@ -57,6 +57,7 @@ byte get_ahrs(float* euler, float* gyro, float* accl) {
     else {
        for (int n = 0; n < 58; n++) {
            reply[n] = Serial.read();
+           delay(1);  
        }
 
        // Roll angle
@@ -139,19 +140,17 @@ void setup() {
 
 // Loop through following code
 void loop() {
-   Serial.flush();
-   
    if (get_ahrs(euler, gyro, accl)== '\x00') {
-      Serial.println("IMU: AHRS values  successful!");
-      Serial.println("Euler angles:");
+      //Serial.println("IMU: AHRS values  successful!");
+      //Serial.println("Euler angles:");
       Serial.println(rad2deg(euler[0]));
       Serial.println(rad2deg(euler[1]));
       Serial.println(rad2deg(euler[2]));
-      Serial.println("Gyro values:");
+      //Serial.println("Gyro values:");
       Serial.println(rad2deg(gyro[0]));
       Serial.println(rad2deg(gyro[1]));
       Serial.println(rad2deg(gyro[2]));
-      Serial.println("Acceleration values"); 
+      //Serial.println("Acceleration values"); 
       Serial.println(accl[0]*g);
       Serial.println(accl[1]*g);
       Serial.println(accl[2]*g);
@@ -161,5 +160,5 @@ void loop() {
     }   
 
     // Delay os 5 ms (200 Hz) i.e. get IMU data at 200Hz rate
-    delay(5);
+    delay(20);
 }

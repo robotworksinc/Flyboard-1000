@@ -54,6 +54,7 @@ byte get_gyro(float* gyro) {
     else {
        for (int n = 0; n < 30; n++) {
            reply[n] = Serial.read();
+           delay(1);
        }
 
        // X gyro
@@ -76,7 +77,7 @@ byte get_gyro(float* gyro) {
        z_gyro.b[2] = reply[25];
        z_gyro.b[3] = reply[24];
        gyro[2] = z_gyro.val;                
-       
+     
        return reply[7];
     }
 }
@@ -95,11 +96,7 @@ void setup() {
 
 // Loop through following code
 void loop() {
-    Serial.flush();
-    
     if (get_gyro(gyro) == '\x00') {
-       Serial.println("IMU: Gyro values successful!");
-       Serial.println("X, Y abd Z Gyro values:");
        Serial.println(rad2deg(gyro[0]));
        Serial.println(rad2deg(gyro[1]));
        Serial.println(rad2deg(gyro[2])); 
