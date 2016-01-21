@@ -179,6 +179,12 @@ void setup()
   ESC3.attach(MOTOR_BL);
   ESC4.attach(MOTOR_BR);
 
+  // Set RC channel value to "rest"
+  channels[0] = RC_MIN;
+  channels[1] = RC_MID;
+  channels[2] = RC_MID; 
+  channels[3] = RC_MID;
+  
   delay(10);
 
 }
@@ -187,7 +193,13 @@ void loop()
 {
   readRC(channels);
 
-  // map(channels[0], RC_MIN, RC_MAX, ESC_MIN, ESC_MAX)
+  if (channels[1] == 0 & channels[2] == 0 & channels[3] == 0) {
+    channels[0] = RC_MIN;
+    channels[1] = RC_MID;
+    channels[2] = RC_MID; 
+    channels[3] = RC_MID;
+  }
+  
   rcthr = channels[0];
   rcroll = map(channels[1], RC_MIN, RC_MAX, -150, 150);
   rcpit = map(channels[2], RC_MIN, RC_MAX, -150, 150);
